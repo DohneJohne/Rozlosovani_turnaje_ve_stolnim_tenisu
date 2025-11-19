@@ -46,7 +46,7 @@ class Hrac(Osoba):
             hrac.nasazeni = index
             return serazeni_hraci
     
-    def zakladni_rozlosovani(pocet_hracu, serazeni_hraci):
+    def zakladni_rozlosovani(pocet_hracu, serazeni_hraci, pocet_skupin):
         jednicky =[]
         dvojky = []
         trojky = []
@@ -69,39 +69,54 @@ class Hrac(Osoba):
             serazeni_hraci.append(sestky)
         return jednicky, dvojky, trojky, ctyrky, petky, sestky
         
-        
-    hraci = nacist_hrace("prihlaseni_hraci.xlsx")
-    muzi, zeny = rozradit_gender(hraci)
-    muzi = serazeni_a_prepis_nasazeni(muzi)
-    zeny = serazeni_a_prepis_nasazeni(zeny)
-    pocet_hracu_muzi = len(muzi)
-    pocet_hracu_zeny = len(zeny)
-    zakladni_rozlosovani(pocet_hracu_muzi, muzi)
-    zakladni_rozlosovani(pocet_hracu_zeny, zeny)
-
 class Skupina:
     def __init__(self, id_skupiny, pocet_hracu_ve_skupine):
         self.id_skupiny = id_skupiny
         self.pocet_hracu_ve_skupine = pocet_hracu_ve_skupine
         self.hraci_ve_skupine = []
+    def __repr__(self):
+        return f"Skupina číslo {self.id_skupiny}, {self.pocet_hracu_ve_skupine} hráčů"
     
-    def vytvor_skupiny(pocet_hracu):
+class Turnaj:
+    def __init__(self, hraci):
+        self.hraci = hraci
+        self.skupiny = []
+        self.pocet_skupin = 0
+
+    def vytvor_skupiny(self, pocet_hracu):
         pocet_skupin_zaklad = pocet_hracu//zakladni_velikost
         zbytek = pocet_hracu% zakladni_velikost
 
         if pocet_hracu < 7:
-            pocet_skupin = 1
+            self.pocet_skupin = 1
         
         elif pocet_hracu <= 13:
-            pocet_skupin = 2
+            self.pocet_skupin = 2
         
         elif pocet_hracu > 13:
             zakladni_velikost = 4
             
             if zbytek%3 ==0:
-                pocet_skupin = pocet_skupin_zaklad + 1
-            else: pocet_skupin = pocet_skupin_zaklad 
+                self.pocet_skupin = pocet_skupin_zaklad + 1
+            else: self.pocet_skupin = pocet_skupin_zaklad 
         
+        for i in range(1, self.pocet_skupin + 1):
+            nova_skupina = Skupina(id_skupiny=i)
+            self.skupiny.append(nova_skupina)
+        
+hraci = Hrac.nacist_hrace("prihlaseni_hraci.xlsx")
+muzi, zeny = Hrac.rozradit_gender(hraci)
+muzi = Hrac.serazeni_a_prepis_nasazeni(muzi)
+zeny = Hrac.serazeni_a_prepis_nasazeni(zeny)
+pocet_hracu_muzi = len(muzi)
+pocet_hracu_zeny = len(zeny)        
+turnaj_muzi = Turnaj(muzi)
+turnaj_zeny = Turnaj(zeny)
+Turnaj.vytvor_skupiny(pocet_hracu_muzi)
+Turnaj.vytvor_skupiny(pocet_hracu_zeny)
+pocet_skupin_muzi = turnaj_muzi.pocet_skupin
+pocet_skupin_zeny = turnaj_zeny.pocet_skupin
+Hrac.zakladni_rozlosovani(pocet_hracu_muzi, muzi, pocet_skupin_muzi)
+Hrac.zakladni_rozlosovani(pocet_hracu_zeny, zeny, pocet_skupin_zeny)
     
-    vytvor_skupiny(pocet_hracu_muzi)
 
