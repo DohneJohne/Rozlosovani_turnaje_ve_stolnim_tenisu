@@ -116,6 +116,7 @@ class Turnaj: #Třída reprezentující samotný turnaj, turnaj má svoje hráč
     def rozlosovani_skupin(self, podskupinky_ze_zakladniho_rozlosovani): #Metoda pro rozlosování zbytku hráčů turnaje
         while len(podskupinky_ze_zakladniho_rozlosovani) > 0: #Pokud v podskupince je více než 0 hráčů
             hrac = random.choice(podskupinky_ze_zakladniho_rozlosovani) #Vybere náhodného hráče z podskupinky
+
             #Kontrola toho, aby nebyli dva hráči ze stejného klubu v jedné skupině
             vhodne_skupiny = []
             for skupina in self.skupiny:
