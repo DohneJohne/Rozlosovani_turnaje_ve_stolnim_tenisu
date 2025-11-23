@@ -1,5 +1,6 @@
 import pandas as pd
 import random
+from weasyprint import HTML
 
 class Osoba:
     def __init__(self, jmeno, prijmeni):
@@ -132,8 +133,9 @@ class Turnaj: #Třída reprezentující samotný turnaj, turnaj má svoje hráč
                 cilova_skupina = vhodne_skupiny[0]
                 cilova_skupina.hraci.append(hrac)
             else: #Pokud není vhodná skupina, přidá se hráč do skupiny s nejmenším počtem hráčů (nutné porušení pravidla o duplicitě klubů)
-                nejlepsi_skupina = min(self.skupiny, key=lambda s: len(s.hraci))
-                nejlepsi_skupina.hraci.append(hrac)
+                min_pocet = min(len(s.hraci) for s in self.skupiny) #Při rovnosti hráčů ve více skupinách, program vybere náhodnou skupinu
+                nejlepsi_skupiny = [s for s in self.skupiny if len(s.hraci) == min_pocet]
+                cilova_skupina = random.choice(nejlepsi_skupiny)
         
             podskupinky_ze_zakladniho_rozlosovani.remove(hrac)
 
