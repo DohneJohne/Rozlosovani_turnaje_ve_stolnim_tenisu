@@ -138,9 +138,89 @@ class Turnaj: #Třída reprezentující samotný turnaj, turnaj má svoje hráč
                 cilova_skupina = random.choice(nejlepsi_skupiny)
         
             podskupinky_ze_zakladniho_rozlosovani.remove(hrac)
+    
+    def export_pdf_turnaje(self, vystup_pdf="turnaj.pdf", skupiny_na_stranku=4, nazev_turnaje= "Turnaj"):
+            """
+            Vygeneruje jeden PDF soubor se všemi skupinami v tomto turnaji.
+            - vystup_pdf: výstupní cesta .pdf
+            - groups_per_page: kolik skupin na jednu stránku (standardně 4)
+            """
+            #CSS - stará se o vzhled pdf, definice toho jak bude vypadat stránka
+            css = """
+            <style>
+            @page { size: A4; margin: 18mm; }
+            body { font-family: Arial, sans-serif; color: #000; }
+            .page { width: 100%; display: block; page-break-after: always; }
+            .group { width: 48%; display: inline-block; vertical-align: top; margin: 0.5%; box-sizing: border-box; }
+            h2 { font-size: 16px; margin: 6px 0 8px 0; text-align: left; }
+            table { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
+            th, td { border: 0.7px solid #000; padding: 6px; text-align: center; font-size: 11px; }
+            .namecell { text-align: left; font-size: 12px; }
+            .clubsmall { font-size: 10px; color: #111; }
+            /* zabrani rozsekani skupiny pres stranku */
+            .group { page-break-inside: avoid; -webkit-column-break-inside: avoid; -moz-column-break-inside: avoid; }
+            </style>
+            """
+
+            html = "<html><head>" + css + "</head><body>" #HTML určuje strukturu a obsah
+            #Nadpis turnaje
+            html += f"""
+            <h1 style="text-align:center; font-size:26px; margin-bottom:10px;">
+                {nazev_turnaje}
+            </h1>
+            <hr style="border:1px solid #000; margin-bottom:25px;">
+            """
+            #Vytvoření bloků skupin, tak aby na jednu stránku A4 připadalo group
+            skupiny = self.skupiny
+            kolik_je_skupin_na_strance = skupiny_na_stranku
+            
+            #Podle počtu skupin na stránku se rozdělí skupiny do tohoto počtu (např.10 skupin bude na třech stránkách (4+4+2))
+            for zacatek_stranky in range(0, len(skupiny), kolik_je_skupin_na_strance):
+                html += '<div class="page">'
+                skupiny_na_strance = skupiny[zacatek_stranky:zacatek_stranky + kolik_je_skupin_na_strance]
+                
+                #Vytvoření tabulky pro skupinu a její celkové vyplnění informacemi
+                for skupina in skupiny_na_strance:
+                    hraci = skupina.hraci
+                    n = len(hraci)
+                    #Název skupiny
+                    html += f"<div class='group'><h2>Skupina {skupina.id_skupiny}</h2>"
+                    #Tabulka: první prázdná buňka + jména v hlavičce
+                    html += "<table>"
+                    html += "<tr><th></th>"
+                    for h in hraci:
+                        #Jméno (nasazení) a pod tím menším písmem klub
+                        html += ("<th style='font-weight:normal;'>"
+                                f"{h.jmeno} {h.prijmeni}<br>({h.nasazeni})<br>"
+                                f"<span class='clubsmall'>{h.klub}</span>"
+                                "</th>")
+                    html += "</tr>"
+
+                    #Řádky: vlevo jméno + buňky (diagonála X)
+                    for i, hrac_radek in enumerate(hraci):
+                        html += ("<tr>"
+                             f"<th class='namecell'>{hrac_radek.jmeno} {hrac_radek.prijmeni} "
+                             f"({hrac_radek.nasazeni})<br><span class='clubsmall'>{hrac_radek.klub}</span></th>")
+                        for j in range(n): #Pokud se shoduje i-tý řádek a j-tý sloupec, tak vykreslí "X"
+                            if i == j:
+                                html += "<td><strong>X</strong></td>"
+                            else:
+                                html += "<td></td>"
+                        html += "</tr>"
+
+                    html += "</table></div>"  #Konec skupiny
+
+                html += "</div>"  #Konec stránky
+
+            html += "</body></html>"
+
+            # vytvořit PDF
+            HTML(string=html).write_pdf(vystup_pdf)
+            print(f"PDF vytvořen: {vystup_pdf}")
+
 
 #Volání tříd a metod pro správné nalosování turnaje
-hraci = Hrac.nacist_hrace("prihlaseni_hraci.xlsx")
+hraci = Hrac.nacist_hrace("prihlaseni_hraci_test.xlsx")
 muzi, zeny = Hrac.rozradit_gender(hraci)
 muzi = Hrac.serazeni_a_prepis_nasazeni(muzi)
 zeny = Hrac.serazeni_a_prepis_nasazeni(zeny)
@@ -166,5 +246,6 @@ turnaj_zeny.rozlosovani_skupin(trojky_zeny)
 turnaj_zeny.rozlosovani_skupin(ctyrky_zeny)
 turnaj_zeny.rozlosovani_skupin(petky_zeny)
 turnaj_zeny.rozlosovani_skupin(sestky_zeny)
-    
+turnaj_muzi.export_pdf_turnaje(vystup_pdf="turnaj_muzi.pdf", skupiny_na_stranku=4,nazev_turnaje="Krajské přebory 2024")
+turnaj_zeny.export_pdf_turnaje(vystup_pdf="turnaj_zeny.pdf", skupiny_na_stranku=4,nazev_turnaje="Krajské přebory 2024")
 
