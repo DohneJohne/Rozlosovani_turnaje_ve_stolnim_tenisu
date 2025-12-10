@@ -1,7 +1,6 @@
 import pandas as pd
 import random
-import openpyxl
-from openpyxl.styles import Font, Alignment
+from openpyxl.styles import Font, Alignment, Border, Side
 from openpyxl import Workbook
 
 class Osoba:
@@ -21,7 +20,7 @@ class Hrac(Osoba): #Hráč dědí z Osoby, reprezentuje každého hráče turnaj
     def __repr__(self):
         return f"Hrac ({self.jmeno}, {self.prijmeni}, {self.klub})"
     
-    def nacist_hrace(soubor): #Python přečte Excel a přiradí k jednotlivým proměnným vlastnosti hráčů dle Excelu
+    def nacist_hrace(soubor): #Python přečte Excel a přiradí k jednotlivým proměnným specifikace hráčů dle Excelu
         df = pd.read_excel(soubor, header=1)
         hraci = []
         for _, row in df.iterrows():
@@ -38,7 +37,8 @@ class Hrac(Osoba): #Hráč dědí z Osoby, reprezentuje každého hráče turnaj
         muzi = []
         zeny = []
 
-        for hrac in hraci: #Rozřazení probíhá podle toho, co je napsané v kolonce Gender u každého hráče
+        #Rozřazení probíhá podle toho, co je napsané v kolonce Gender u každého hráče
+        for hrac in hraci: 
             if hrac.gender.lower() in ["m", "muž"]: #U každého genderu více možností pro univerzálnost kódu
                 muzi.append(hrac)
             elif hrac.gender.lower() in ["f", "ž", "žena"]:#Zároveň gender převeden na malá písmena, znovu pro zvýšení univerzálnosti
@@ -53,13 +53,14 @@ class Hrac(Osoba): #Hráč dědí z Osoby, reprezentuje každého hráče turnaj
     
     def rozdeleni_na_kose(serazeni_hraci, pocet_skupin):#Metoda, která rozdělí hráče do podskupinek dle jeho nasazení a počtu skupin
         delic = pocet_skupin # Proměnná, která rozděluje hráče na podskupinky a dělí tyto podskupinky (12. hráč je jednička, 13. dvojka) 
-#př.: Pokud přijede 48 lidí a budu mít tedy 12 skupin, tak 12 hráčů budou jedničky, 12 dvojky atd... dle jejich nasazení
+    #př.: Pokud přijede 48 lidí a budu mít tedy 12 skupin, tak 12 hráčů budou jedničky, 12 dvojky atd... dle jejich nasazení
         jednicky = serazeni_hraci[0:delic]
         dvojky = serazeni_hraci[delic:(delic)*2]
         trojky = serazeni_hraci[delic*2: (delic*3)]
         ctyrky = serazeni_hraci[delic*3: (delic*4)]
         petky = serazeni_hraci[delic*4: (delic*5)]
         sestky = serazeni_hraci[delic*5: (delic*6)]
+
         #Každému hráči je přiděleno identifikační číslo, podle toho v jakém koši se nachází
         for hrac in jednicky:
             hrac.kos = 1
@@ -90,20 +91,25 @@ class Turnaj: #Třída reprezentující samotný turnaj, turnaj má svoje hráč
         self.pocet_skupin = 0
 
     def vytvor_skupiny(self, pocet_hracu): #Metoda, která vytvoří počet skupin podle zadaných vlastností
+        #Základní velikost skupiny jsou 4 hráči
+        zakladni_velikost = 4 
 
-        zakladni_velikost = 4 #Základní velikost skupiny jsou 4 hráči
-        if pocet_hracu < 7: #Pokud přijede na turnaj méně než 7 hráčů, vytvoří se jedna skupina
+        #Pokud přijede na turnaj méně než 7 hráčů, vytvoří se jedna skupina
+        if pocet_hracu < 7: 
             self.pocet_skupin = 1
-        
-        elif pocet_hracu <= 13: #Pokud na turnaj přijede 13 a méně hráčů, vytvoří se dvě skupiny
+
+        #Pokud na turnaj přijede 13 a méně hráčů, vytvoří se dvě skupiny
+        elif pocet_hracu <= 13: 
             self.pocet_skupin = 2
-        
-        elif pocet_hracu > 13: #Pokud na turnaj přijede více než 13 hráčů, vytvoří se počet skupin dle vlastností
+
+         #Pokud na turnaj přijede více než 13 hráčů, vytvoří se počet skupin dle vlastností
+        elif pocet_hracu > 13:
             pocet_skupin_zaklad = pocet_hracu//zakladni_velikost #(1)
             zbytek = pocet_hracu% zakladni_velikost
             if zbytek%3 ==0:
                 self.pocet_skupin = pocet_skupin_zaklad + 1 #(2)
             else: self.pocet_skupin = pocet_skupin_zaklad 
+
         #Pokud přijede počet hráčů dělitelný čtyřma, vytvoří se skupin počet dle (1), pokud po dělení 4 zbydou 1 a 2 hráči
         #Vytvoří se stejně skupin a 1 nebo 2 budou pětičlenné, pokud zbytek bude 3, vytvoří se skupina navíc a jedna ze všech skupin bude tříčlenná dle (2)
         for i in range(1, self.pocet_skupin + 1):
@@ -113,17 +119,17 @@ class Turnaj: #Třída reprezentující samotný turnaj, turnaj má svoje hráč
         return self.skupiny
     
     def rozlosovani_jednicek(self,jednicky): #Metoda sloužící pro vypsání jedniček do skupin dle nasazení
-        for cislo_skupiny, hrac in enumerate(jednicky, start=1):
+        for index_hrace, hrac in enumerate(jednicky, start=1):
             for skupina in self.skupiny:
-                if skupina.id_skupiny == cislo_skupiny:
+                if skupina.id_skupiny == index_hrace:
                     skupina.hraci.append(hrac)
                     break
     
     def rozlosovani_skupin(self, kos): #Metoda pro rozlosování zbytku hráčů turnaje
-        while len(kos) > 0: #Pokud v podskupince je více než 0 hráčů
-            hrac = random.choice(kos) #Vybere náhodného hráče z podskupinky
+        while len(kos) > 0: #Pokud v koši je více než 0 hráčů
+            hrac = random.choice(kos) #Vybere náhodného hráče z koše
 
-            #Kontrola toho, aby nebyli dva hráči ze stejného klubu v jedné skupině
+            #Kontrola toho, aby nebyli dva hráči ze stejného klubu v jedné skupině + aby do jedné skupiny nešli dva hráči ze stejného koše
             vhodne_skupiny = []
             for skupina in self.skupiny:
                 stejny_klub_nalezen = False
@@ -160,9 +166,19 @@ class Turnaj: #Třída reprezentující samotný turnaj, turnaj má svoje hráč
             kos.remove(hrac)
     
     def export_turnaje_do_excelu(self, vystup, skupin_na_list):
+        #Inicializace Excelovského souboru
         wb = Workbook()
         ws = wb.active
         ws.title = f"Skupiny 1-{skupin_na_list}"
+        
+        #Zadefinování okrajů pro každou buňku
+        okraj = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+        )
+
         #Pomocné konstanty pro pozicování
         mezera_radky = 2
         aktualni_radek = 1
@@ -172,6 +188,7 @@ class Turnaj: #Třída reprezentující samotný turnaj, turnaj má svoje hráč
             ws.cell(row=aktualni_radek, column=aktualni_sloupec, 
                     value=f"Skupina {skupina.id_skupiny}").font= Font(bold=True, size=14)
             
+            #Pomocné proměnné pro data (skok o dva řádky níže od nadpisu skupiny)
             zacatek_dat_row = aktualni_radek + 2
             zacatek_dat_collumn = aktualni_sloupec
 
@@ -182,36 +199,61 @@ class Turnaj: #Třída reprezentující samotný turnaj, turnaj má svoje hráč
                 text = f"{h.jmeno} {h.prijmeni} ({h.nasazeni})\n{h.klub}"
                 bunka = ws.cell(row= zacatek_dat_row + i, column = zacatek_dat_collumn, value=text)
                 bunka.alignment = Alignment(wrap_text=True, vertical="top")
+                bunka.font = Font(bold=True)
 
-            
+            #Pomocná proměnná pro odsazení tabulky nxn hráčů
             tabulka_zacatek_sloupec = zacatek_dat_collumn + 1
+
             #Hlavička hráčů
             for i in range (n):
-                ws.cell(row=zacatek_dat_row -1, column= tabulka_zacatek_sloupec + i,
-                        value=f"H{i+1}").font = Font(bold=True)
+                bunka = ws.cell(row=zacatek_dat_row -1, column= tabulka_zacatek_sloupec + i,
+                        value=f"  H{i+1}  ")
+                bunka.font = Font(bold=True)
+                bunka.alignment = Alignment(horizontal="center", vertical="center")
+
             #Vytvoření čtvercové tabulky s délkou strany o počtu hráčů ve skupině + X na diagonále
             for i in range(n):
                 for j in range(n):
                     if i==j:
-                        ws.cell(row=zacatek_dat_row + i, column= tabulka_zacatek_sloupec + j,
-                                value = "X").font = Font(bold=True)
+                        bunka = ws.cell(row=zacatek_dat_row + i, column= tabulka_zacatek_sloupec + j,
+                                value = "X")
+                        bunka.font = Font(bold=True, size = 18)
+                        bunka.alignment = Alignment(horizontal="center", vertical="center")
                     else:
                         ws.cell(row=zacatek_dat_row + i, column= tabulka_zacatek_sloupec + j,
                                 value = "")
+                        
             #Přidání dvou sloupců "Skóre" a "Pořadí" na konec tabulky
             sloupec_skore = tabulka_zacatek_sloupec + n
             sloupec_poradi = tabulka_zacatek_sloupec + n + 1
 
-            ws.cell(row= zacatek_dat_row - 1, column= sloupec_skore,
-                    value = "Skóre").font = Font(bold=True)
-            ws.cell(row= zacatek_dat_row - 1, column= sloupec_poradi,
-                    value = "Pořadí").font = Font(bold=True)
+            bunka_skore = ws.cell(row= zacatek_dat_row - 1, column= sloupec_skore,
+                    value = "Skóre")
+            bunka_skore.font = Font(bold=True)
+            bunka_skore.alignment = Alignment(horizontal="center", vertical="center")
+            
+            bunka_poradi = ws.cell(row= zacatek_dat_row - 1, column= sloupec_poradi,
+                    value = "Pořadí")
+            bunka_poradi.font = Font(bold=True)
+            bunka_poradi.alignment = Alignment(horizontal="center", vertical="center")
+
+            #Konec tabulky (pravý dolní roh)
+            posledni_radek = zacatek_dat_row + n - 1  
+            posledni_sloupec = tabulka_zacatek_sloupec + n + 1
+
+            #Okraje pro všechny buňky skupiny
+            for r in range(aktualni_radek, posledni_radek + 1):
+                for c in range(aktualni_sloupec, posledni_sloupec + 1):
+                    bunka = ws.cell(row=r, column=c)
+                    bunka.border = okraj
+            
             
             #Posun na další skupinu pod tu současnou
             aktualni_radek += n + 1 + mezera_radky
 
-            #Vytvoření nového sheetu pokud dosáhneme pozadovaneho poctu skupin na jednom sheetu
+            #Vytvoření nového sheetu pokud dosáhneme požadovaného počtu skupin na jednom sheetu
             if index_skupiny % skupin_na_list == 0:
+
             #Zároveň se nastavuje i šířka buňky pro to, aby se tam vešly všechny texty
                 for sloupec in ws.columns:
                     maximalni_delka = 0
@@ -220,12 +262,13 @@ class Turnaj: #Třída reprezentující samotný turnaj, turnaj má svoje hráč
                             delka_textu = len(str(bunka.value))
                             if delka_textu > maximalni_delka:
                                 maximalni_delka = delka_textu
-                    pismeno = sloupec[0].column_letter
-                    ws.column_dimensions[pismeno].width = maximalni_delka + 4
+                    slovo = sloupec[0].column_letter
+                    ws.column_dimensions[slovo].width = maximalni_delka + 4
                 dalsi = index_skupiny + 1
                 ws = wb.create_sheet(title= f"Skupiny {dalsi}-{dalsi + skupin_na_list-1}")
                 aktualni_radek = 1
                 aktualni_sloupec = 1
+
         #Fitting slov pro poslední sheet (poslední sheet není pod podmínkou if)
         for sloupec in ws.columns:
                     maximalni_delka = 0
@@ -234,13 +277,11 @@ class Turnaj: #Třída reprezentující samotný turnaj, turnaj má svoje hráč
                             delka_textu = len(str(bunka.value))
                             if delka_textu > maximalni_delka:
                                 maximalni_delka = delka_textu
-                    pismeno = sloupec[0].column_letter
-                    ws.column_dimensions[pismeno].width = maximalni_delka + 4
+                    slovo = sloupec[0].column_letter
+                    ws.column_dimensions[slovo].width = maximalni_delka + 4
+        #Příkaz pro vytvoření Excelu            
         wb.save(vystup)
         return print(f"Turnaj rozlosován! Vygenerovaný Excel je ve stejné složce, jako tento kód")
-
-
-
 
 #Volání tříd a metod pro správné nalosování turnaje
 hraci = Hrac.nacist_hrace("prihlaseni_hraci_test.xlsx")
