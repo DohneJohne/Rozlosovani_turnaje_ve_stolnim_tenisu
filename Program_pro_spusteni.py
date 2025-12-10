@@ -1,0 +1,31 @@
+from Rozlosovani_turnaje_ve_stolnim_tenisu import Hrac, Turnaj
+
+#Volání tříd a metod pro správné nalosování turnaje
+hraci = Hrac.nacist_hrace("prihlaseni_hraci_test.xlsx")
+muzi, zeny = Hrac.rozradit_gender(hraci)
+muzi = Hrac.serazeni_a_prepis_nasazeni(muzi)
+zeny = Hrac.serazeni_a_prepis_nasazeni(zeny)
+pocet_hracu_muzi = len(muzi)
+pocet_hracu_zeny = len(zeny)        
+turnaj_muzi = Turnaj(muzi)
+turnaj_zeny = Turnaj(zeny)
+turnaj_muzi.vytvor_skupiny(pocet_hracu_muzi)
+turnaj_zeny.vytvor_skupiny(pocet_hracu_zeny)
+pocet_skupin_muzi = turnaj_muzi.pocet_skupin
+pocet_skupin_zeny = turnaj_zeny.pocet_skupin
+jednicky_muzi, dvojky_muzi, trojky_muzi, ctyrky_muzi, petky_muzi, sestky_muzi =Hrac.rozdeleni_na_kose(muzi, pocet_skupin_muzi)
+jednicky_zeny, dvojky_zeny, trojky_zeny, ctyrky_zeny, petky_zeny, sestky_zeny =Hrac.rozdeleni_na_kose(zeny, pocet_skupin_zeny)
+turnaj_muzi.rozlosovani_jednicek(jednicky_muzi)
+turnaj_zeny.rozlosovani_jednicek(jednicky_zeny)
+turnaj_muzi.rozlosovani_skupin(dvojky_muzi)
+turnaj_muzi.rozlosovani_skupin(trojky_muzi)
+turnaj_muzi.rozlosovani_skupin(ctyrky_muzi)
+turnaj_muzi.rozlosovani_skupin(petky_muzi)
+turnaj_muzi.rozlosovani_skupin(sestky_muzi)
+turnaj_zeny.rozlosovani_skupin(dvojky_zeny)
+turnaj_zeny.rozlosovani_skupin(trojky_zeny)
+turnaj_zeny.rozlosovani_skupin(ctyrky_zeny)
+turnaj_zeny.rozlosovani_skupin(petky_zeny)
+turnaj_zeny.rozlosovani_skupin(sestky_zeny)
+turnaj_muzi.export_turnaje_do_excelu("muzi_skupiny.xlsx", skupin_na_list=4)
+turnaj_zeny.export_turnaje_do_excelu("zeny_skupiny.xlsx", skupin_na_list=4)
