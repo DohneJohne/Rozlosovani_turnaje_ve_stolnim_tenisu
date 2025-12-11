@@ -51,8 +51,8 @@ class Hrac(Osoba): #Hráč dědí z Osoby, reprezentuje každého hráče turnaj
             hrac.nasazeni = index
         return serazeni_hraci
     
-    def rozdeleni_na_kose(serazeni_hraci, pocet_skupin):#Metoda, která rozdělí hráče do podskupinek dle jeho nasazení a počtu skupin
-        delic = pocet_skupin # Proměnná, která rozděluje hráče na podskupinky a dělí tyto podskupinky (12. hráč je jednička, 13. dvojka) 
+    def rozdeleni_na_kose(serazeni_hraci, pocet_skupin):#Metoda, která rozdělí hráče do košů dle jeho nasazení a počtu skupin
+        delic = pocet_skupin # Proměnná, která rozděluje hráče na koše a dělí tyto koše (12. hráč je jednička, 13. dvojka) 
     #př.: Pokud přijede 48 lidí a budu mít tedy 12 skupin, tak 12 hráčů budou jedničky, 12 dvojky atd... dle jejich nasazení
         jednicky = serazeni_hraci[0:delic]
         dvojky = serazeni_hraci[delic:(delic)*2]
