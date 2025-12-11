@@ -60,6 +60,7 @@ class Hrac(Osoba): #Hráč dědí z Osoby, reprezentuje každého hráče turnaj
         ctyrky = serazeni_hraci[delic*3: (delic*4)]
         petky = serazeni_hraci[delic*4: (delic*5)]
         sestky = serazeni_hraci[delic*5: (delic*6)]
+        sedmicky = serazeni_hraci[delic*6:delic*7]
 
         #Každému hráči je přiděleno identifikační číslo, podle toho v jakém koši se nachází
         for hrac in jednicky:
@@ -74,8 +75,10 @@ class Hrac(Osoba): #Hráč dědí z Osoby, reprezentuje každého hráče turnaj
             hrac.kos = 5
         for hrac in sestky:
             hrac.kos = 6
+        for hrac in sedmicky:
+            hrac.kos = 7
 
-        return jednicky, dvojky, trojky, ctyrky, petky, sestky
+        return jednicky, dvojky, trojky, ctyrky, petky, sestky, sedmicky
         
 class Skupina: #Třída, která reprezentuje samotnou Skupinu turnaje
     def __init__(self, id_skupiny):
@@ -97,13 +100,17 @@ class Turnaj: #Třída reprezentující samotný turnaj, turnaj má svoje hráč
         #Pokud přijede na turnaj méně než 7 hráčů, vytvoří se jedna skupina
         if pocet_hracu < 7: 
             self.pocet_skupin = 1
-
-        #Pokud na turnaj přijede 13 a méně hráčů, vytvoří se dvě skupiny
-        elif pocet_hracu <= 13: 
+        
+        #Pokud na turnaj přijede 12 a méně hráčů, vytvoří se dvě skupiny
+        elif pocet_hracu <= 12:
             self.pocet_skupin = 2
 
+        #Pokud na turnaj přijede přesně 13 hráčů, vytvoří se čtyři skupiny (tři tříčlenné, jedna čtyřčlenná)
+        elif pocet_hracu == 13 or pocet_hracu == 14 or pocet_hracu == 15: 
+            self.pocet_skupin = 4
+
          #Pokud na turnaj přijede více než 13 hráčů, vytvoří se počet skupin dle vlastností
-        elif pocet_hracu > 13:
+        elif pocet_hracu > 15:
             pocet_skupin_zaklad = pocet_hracu//zakladni_velikost #(1)
             zbytek = pocet_hracu% zakladni_velikost
             if zbytek%3 ==0:
@@ -183,6 +190,8 @@ class Turnaj: #Třída reprezentující samotný turnaj, turnaj má svoje hráč
         mezera_radky = 2
         aktualni_radek = 1
         aktualni_sloupec = 1
+
+        #Kód pro vytvoření tabulky v Excelu, která reprezentuje skupinu 
         #Název skupiny nad tabulkou skupiny
         for index_skupiny, skupina in enumerate(self.skupiny, start=1):
             ws.cell(row=aktualni_radek, column=aktualni_sloupec, 
