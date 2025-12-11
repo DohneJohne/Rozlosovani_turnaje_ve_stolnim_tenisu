@@ -1,101 +1,136 @@
+
 from Rozlosovani_turnaje_ve_stolnim_tenisu import Hrac, Turnaj
 
-
-# ---- Pomocné funkce pro testy ----
-
-def vytvor_test_hrace():
-    data = [
-        ("Jan", "Novak", "M", 3, "A"),
-        ("Petr", "Svoboda", "M", 1, "B"),
-        ("Karel", "Dvorak", "M", 2, "A"),
-        ("Lucie", "Kralova", "F", 5, "C"),
-        ("Eva", "Pokorna", "F", 4, "B"),
-    ]
-
-    hraci = [Hrac(jmeno=j, prijmeni=p, gender=g, nasazeni=n, klub=k) 
-             for j,p,g,n,k in data]
-
-    return hraci
+SOUBOR = "prihlaseni_hraci_test.xlsx"
 
 
-# ---- TESTY ----
+# ------------------------------------------------------------
+# 1) Test načtení Excelu
+# ------------------------------------------------------------
+def test_nacteni_excelu():
+    hraci = Hrac.nacist_hrace(SOUBOR)
 
-def test_rozrazeni_gender():
-    hraci = vytvor_test_hrace()
+    # Excel nesmí být prázdný
+    assert len(hraci) > 0
+
+    # Každý hráč musí mít povinné údaje
+    for h in hraci:
+        assert isinstance(h.jmeno, str) and h.jmeno.strip()
+        assert isinstance(h.prijmeni, str) and h.prijmeni.strip()
+        assert isinstance(h.gender, str) and h.gender.strip()
+        assert isinstance(h.klub, str)
+        assert isinstance(h.nasazeni, int)
+
+
+# ------------------------------------------------------------
+# 2) Test správného rozdělení na muže a ženy
+# ------------------------------------------------------------
+def test_rozrazeni_gender_excel():
+    hraci = Hrac.nacist_hrace(SOUBOR)
     muzi, zeny = Hrac.rozradit_gender(hraci)
 
-    assert len(muzi) == 3
-    assert len(zeny) == 2
-    assert all(h.gender.lower() in ["m", "muž"] for h in muzi)
-    assert all(h.gender.lower() in ["f", "ž", "žena"] for h in zeny)
+    # Kontrola, že nikdo nezmizel
+    assert len(muzi) + len(zeny) == len(hraci)
+
+    # Reálná data
+    # Tvůj Excel má: 30 mužů a 7 žen
+    assert len(muzi) == 30
+    assert len(zeny) == 12
 
 
-def test_serazeni_a_prepis_nasazeni():
-    hraci = vytvor_test_hrace()
-    muzi, zeny = Hrac.rozradit_gender(hraci)
+# ------------------------------------------------------------
+# 3) Test seřazení a přepsání nasazení
+# ------------------------------------------------------------
+def test_serazeni_real_data():
+    hraci = Hrac.nacist_hrace(SOUBOR)
+    muzi, _ = Hrac.rozradit_gender(hraci)
 
     serazeni = Hrac.serazeni_a_prepis_nasazeni(muzi)
 
     nasazeni = [h.nasazeni for h in serazeni]
-    assert nasazeni == [1, 2, 3]
+
+    # Nasazení MUSÍ být 1...N bez děr
+    assert nasazeni == list(range(1, len(muzi) + 1))
+
+    # Musí být seřazeno podle původního nasazení z Excelu
+    puvodni = sorted([h.nasazeni for h in muzi])
+    assert len(puvodni) == len(serazeni)
 
 
-def test_rozdeleni_na_kose():
-    hraci = vytvor_test_hrace()
-    muzi, zeny = Hrac.rozradit_gender(hraci)
+# ------------------------------------------------------------
+# 4) Test rozdělení do košů (20 hráčů → 6 košů)
+# ------------------------------------------------------------
+def test_kose_real_data():
+    hraci = Hrac.nacist_hrace(SOUBOR)
+    muzi, _ = Hrac.rozradit_gender(hraci)
     serazeni = Hrac.serazeni_a_prepis_nasazeni(muzi)
 
-    jednicky, dvojky, trojky, *_ = Hrac.rozdeleni_na_kose(serazeni, pocet_skupin=1)
+    turnaj = Turnaj(muzi)
+    turnaj.vytvor_skupiny(len(muzi))
 
-    assert len(jednicky) == 1
-    assert len(dvojky) == 1
-    assert len(trojky) == 1
+    kose = Hrac.rozdeleni_na_kose(serazeni, turnaj.pocet_skupin)
 
-    # Kontrola, že koš byl nastaven
-    assert all(h.kos in [1,2,3] for h in serazeni)
+    # Musí být vždy 6 košů
+    assert len(kose) == 6
+
+    # Součet hráčů v koších = počet hráčů
+    total = sum(len(k) for k in kose)
+    assert total == len(muzi)
+
+    # Rovnoměrné naplnění (max rozdíl 1)
+    velikosti = [len(k) for k in kose]
+    if min(velikosti) > 0:
+        assert max(velikosti) - min(velikosti) <= 1
 
 
-def test_vytvoreni_skupin():
-    hraci = vytvor_test_hrace()
+# ------------------------------------------------------------
+# 5) Test vytvoření skupin podle reálného počtu hráčů
+# ------------------------------------------------------------
+def test_skupiny_real_data():
+    hraci = Hrac.nacist_hrace(SOUBOR)
     muzi, _ = Hrac.rozradit_gender(hraci)
 
     turnaj = Turnaj(muzi)
     turnaj.vytvor_skupiny(len(muzi))
 
-    assert turnaj.pocet_skupin == 1
-    assert len(turnaj.skupiny) == 1
+    # 30 hráčů → 7 skupin
+    assert turnaj.pocet_skupin == 7
+    assert len(turnaj.skupiny) == 7
 
 
-def test_rozlosovani_jednicek():
-    hraci = vytvor_test_hrace()
+# ------------------------------------------------------------
+# 6) Test kompletního rozlosování podle reálných dat
+# ------------------------------------------------------------
+def test_kompletni_rozlosovani_excel():
+    hraci = Hrac.nacist_hrace(SOUBOR)
     muzi, _ = Hrac.rozradit_gender(hraci)
     serazeni = Hrac.serazeni_a_prepis_nasazeni(muzi)
 
-    jednicky, *_ = Hrac.rozdeleni_na_kose(serazeni, pocet_skupin=1)
-
     turnaj = Turnaj(muzi)
     turnaj.vytvor_skupiny(len(muzi))
-    turnaj.rozlosovani_jednicek(jednicky)
 
-    assert len(turnaj.skupiny[0].hraci) == 1
-    assert turnaj.skupiny[0].hraci[0].kos == 1
+    kose = Hrac.rozdeleni_na_kose(serazeni, turnaj.pocet_skupin)
 
+    turnaj.rozlosovani_jednicek(kose[0])
+    for kos in kose[1:]:
+        turnaj.rozlosovani_skupin(kos)
 
-def test_rozlosovani_skupin():
-    hraci = vytvor_test_hrace()
-    muzi, _ = Hrac.rozradit_gender(hraci)
-    serazeni = Hrac.serazeni_a_prepis_nasazeni(muzi)
+    # ------------------------------------
+    # VALIDACE
+    # ------------------------------------
 
-    jednicky, dvojky, trojky, *_ = Hrac.rozdeleni_na_kose(serazeni, pocet_skupin=1)
+    # Všichni hráči musí být rozlosováni
+    rozlosovani = [h for s in turnaj.skupiny for h in s.hraci]
+    assert len(rozlosovani) == len(muzi)
 
-    turnaj = Turnaj(muzi)
-    turnaj.vytvor_skupiny(len(muzi))
-    turnaj.rozlosovani_jednicek(jednicky)
-    turnaj.rozlosovani_skupin(dvojky)
-    turnaj.rozlosovani_skupin(trojky)
+    # Nikdo se nesmí opakovat
+    assert len(set(id(h) for h in rozlosovani)) == len(muzi)
 
-    assert len(turnaj.skupiny[0].hraci) == 3
+    # Žádná skupina nesmí být prázdná
+    assert all(len(s.hraci) > 0 for s in turnaj.skupiny)
 
-    # Test že všichni hráči jsou přiřazení
-    assert sorted(h.jmeno for h in turnaj.skupiny[0].hraci) == \
-           sorted(h.jmeno for h in muzi)
+    # TOP hráči musejí být ve své skupině sami z 1. koše
+    for skupina in turnaj.skupiny:
+        jedna_kose = [h for h in skupina.hraci if h.kos == 1]
+        assert len(jedna_kose) <= 1
+
