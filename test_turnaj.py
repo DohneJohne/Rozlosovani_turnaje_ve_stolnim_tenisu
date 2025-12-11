@@ -1,10 +1,7 @@
 
 from Rozlosovani_turnaje_ve_stolnim_tenisu import Hrac, Turnaj
-
 SOUBOR = "prihlaseni_hraci_test.xlsx"
 
-
-# ------------------------------------------------------------
 # 1) Test načtení Excelu
 # ------------------------------------------------------------
 def test_nacteni_excelu():
@@ -22,10 +19,10 @@ def test_nacteni_excelu():
         assert isinstance(h.nasazeni, int)
 
 
+
+# 2) Test správného rozdělení podle genderu
 # ------------------------------------------------------------
-# 2) Test správného rozdělení na muže a ženy
-# ------------------------------------------------------------
-def test_rozrazeni_gender_excel():
+def test_rozrazeni_gender():
     hraci = Hrac.nacist_hrace(SOUBOR)
     muzi, zeny = Hrac.rozradit_gender(hraci)
 
@@ -33,15 +30,14 @@ def test_rozrazeni_gender_excel():
     assert len(muzi) + len(zeny) == len(hraci)
 
     # Reálná data
-    # Tvůj Excel má: 30 mužů a 7 žen
+    # Dle Excelu: 30 mužů a 13 žen
     assert len(muzi) == 30
-    assert len(zeny) == 12
+    assert len(zeny) == 13
 
 
+# 3) Test seřazení a přepis nasazení
 # ------------------------------------------------------------
-# 3) Test seřazení a přepsání nasazení
-# ------------------------------------------------------------
-def test_serazeni_real_data():
+def test_serazeni():
     hraci = Hrac.nacist_hrace(SOUBOR)
     muzi, _ = Hrac.rozradit_gender(hraci)
 
@@ -57,10 +53,10 @@ def test_serazeni_real_data():
     assert len(puvodni) == len(serazeni)
 
 
+
+# 4) Test rozdělení do košů (30 hráčů -> 6 košů)
 # ------------------------------------------------------------
-# 4) Test rozdělení do košů (20 hráčů → 6 košů)
-# ------------------------------------------------------------
-def test_kose_real_data():
+def test_kose():
     hraci = Hrac.nacist_hrace(SOUBOR)
     muzi, _ = Hrac.rozradit_gender(hraci)
     serazeni = Hrac.serazeni_a_prepis_nasazeni(muzi)
@@ -70,8 +66,8 @@ def test_kose_real_data():
 
     kose = Hrac.rozdeleni_na_kose(serazeni, turnaj.pocet_skupin)
 
-    # Musí být vždy 6 košů
-    assert len(kose) == 6
+    # Kontrola, že vždy musí být 7 košů
+    assert len(kose) == 7
 
     # Součet hráčů v koších = počet hráčů
     total = sum(len(k) for k in kose)
@@ -83,7 +79,7 @@ def test_kose_real_data():
         assert max(velikosti) - min(velikosti) <= 1
 
 
-# ------------------------------------------------------------
+
 # 5) Test vytvoření skupin podle reálného počtu hráčů
 # ------------------------------------------------------------
 def test_skupiny_real_data():
@@ -98,7 +94,7 @@ def test_skupiny_real_data():
     assert len(turnaj.skupiny) == 7
 
 
-# ------------------------------------------------------------
+
 # 6) Test kompletního rozlosování podle reálných dat
 # ------------------------------------------------------------
 def test_kompletni_rozlosovani_excel():
@@ -115,7 +111,7 @@ def test_kompletni_rozlosovani_excel():
     for kos in kose[1:]:
         turnaj.rozlosovani_skupin(kos)
 
-    # ------------------------------------
+    
     # VALIDACE
     # ------------------------------------
 
